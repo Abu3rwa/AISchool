@@ -1,8 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // Assuming User model is in ../models/User.js
-const Tenant = require('../models/Tenant'); // Assuming Tenant model is in ../models/Tenant.js
-const { Schema } = require('mongoose');
+const User = require('../models/User');
+const Tenant = require('../models/Tenant');
+const roleService = require('./roleService');
 
 /**
  * @desc Register a new user and potentially a new tenant
@@ -11,25 +11,48 @@ const { Schema } = require('mongoose');
  * @param {string} firstName
  * @param {string} lastName
  * @param {string} [tenantName] - Optional: if provided, a new tenant is created
- * @returns {Object} - Created user object
+ * @returns {Object} - Created user object with token
  */
 exports.register = async (email, password, firstName, lastName, tenantName) => {
   let tenantId;
 
+  // Check if user with email already exists
+  const existingUser = await User.findOne({ email, deleted: false });
+  if (existingUser) {
+    throw new Error('User with this email already exists');
+  }
+
   // If tenantName is provided, create a new tenant
   if (tenantName) {
-    const newTenant = new Tenant({ name: tenantName, slug: tenantName.toLowerCase().replace(/\s/g, '-') });
+    // Check if tenant slug already exists
+    const slug = tenantName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const existingTenant = await Tenant.findOne({ slug, deleted: false });
+    if (existingTenant) {
+      throw new Error('Tenant with this name already exists');
+    }
+
+    const newTenant = new Tenant({ 
+      name: tenantName, 
+      slug: slug 
+    });
     await newTenant.save();
     tenantId = newTenant._id;
+
+    // Create default roles for the new tenant
+    await roleService.createDefaultRoles(tenantId);
   } else {
-    // In a real app, if tenantName is not provided, you'd likely expect a tenantId to be passed
-    // or infer it from the context (e.g., inviting user to an existing tenant)
-    throw new Error('Tenant name or ID is required for registration.');
+    throw new Error('Tenant name is required for registration.');
   }
 
   // Hash password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
+
+  // Get ADMIN role for the first user
+  const adminRole = await roleService.getRoleByName('ADMIN', tenantId);
+  if (!adminRole) {
+    throw new Error('Default roles not found. Please contact support.');
+  }
 
   const newUser = new User({
     tenantId,
@@ -37,17 +60,23 @@ exports.register = async (email, password, firstName, lastName, tenantName) => {
     lastName,
     email,
     password: hashedPassword,
-    role: tenantName ? 'SCHOOL_ADMIN' : 'TEACHER', // First user of a new tenant is SCHOOL_ADMIN
-    // Add default roles or assign based on tenant setup
+    roles: [adminRole._id] // Assign ADMIN role as ObjectId reference
   });
 
   await newUser.save();
 
-  // In a real application, you might also want to generate a JWT here
-  // and return it along with the user.
-  // const token = jwt.sign({ id: newUser._id, tenantId: newUser.tenantId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  // Generate JWT token
+  const token = jwt.sign(
+    { id: newUser._id, tenantId: newUser.tenantId },
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' }
+  );
 
-  return newUser; // Or { user: newUser, token } if generating JWT
+  // Remove password before returning
+  const userObj = newUser.toObject();
+  delete userObj.password;
+
+  return { user: userObj, token };
 };
 
 /**
@@ -67,8 +96,21 @@ exports.login = async (email, password) => {
     throw new Error('Invalid credentials');
   }
 
+  // Check if tenant is active
+  const tenant = await Tenant.findOne({ _id: user.tenantId, deleted: false });
+  if (!tenant) {
+    throw new Error('Tenant not found');
+  }
+  if (tenant.status !== 'active') {
+    throw new Error(`Tenant account is ${tenant.status}`);
+  }
+
   // Generate JWT token
-  const token = jwt.sign({ id: user._id, tenantId: user.tenantId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign(
+    { id: user._id, tenantId: user.tenantId },
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' }
+  );
 
   // Remove password before returning user object
   user.password = undefined;

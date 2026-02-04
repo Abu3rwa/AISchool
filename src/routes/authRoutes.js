@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const authMiddleware = require('../middleware/authMiddleware');
 
 /**
  * @route POST /api/auth/register
@@ -21,6 +22,6 @@ router.post('/login', authController.loginUser);
  * @desc Get current authenticated user details
  * @access Private
  */
-router.get('/me', authController.getMe); // Requires authentication middleware
+router.get('/me', authMiddleware, authController.getMe);
 
 module.exports = router;

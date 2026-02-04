@@ -33,16 +33,21 @@ exports.loginUser = async (req, res) => {
 
 /**
  * @desc Get authenticated user details
- * @param {Object} req - Express request object (user details often attached by auth middleware)
+ * @param {Object} req - Express request object (user details attached by auth middleware)
  * @param {Object} res - Express response object
  */
 exports.getMe = async (req, res) => {
   try {
-    // Assuming user details are attached to req.user by a middleware
-    const user = req.user; // Placeholder: actual implementation needs auth middleware
-    if (!user) {
+    if (!req.user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    
+    // Populate roles for full user info
+    const User = require('../models/User');
+    const user = await User.findById(req.user._id)
+      .populate('roles', 'name permissions')
+      .select('-password');
+    
     res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });

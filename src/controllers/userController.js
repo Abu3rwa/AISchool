@@ -7,8 +7,8 @@ const userService = require('../services/userService');
  */
 exports.getAllUsers = async (req, res) => {
   try {
-    // In a multi-tenant system, this would typically fetch users for the authenticated tenant
-    const users = await userService.getAllUsers();
+    if (!req.user || !req.user.tenantId) return res.status(401).json({ message: 'Unauthorized' });
+    const users = await userService.getAllUsers(req.user.tenantId);
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -22,8 +22,8 @@ exports.getAllUsers = async (req, res) => {
  */
 exports.getUserById = async (req, res) => {
   try {
-    // Ensure user belongs to the authenticated tenant
-    const user = await userService.getUserById(req.params.id);
+    if (!req.user || !req.user.tenantId) return res.status(401).json({ message: 'Unauthorized' });
+    const user = await userService.getUserById(req.params.id, req.user.tenantId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -40,8 +40,9 @@ exports.getUserById = async (req, res) => {
  */
 exports.createUser = async (req, res) => {
   try {
-    // Associate new user with the authenticated tenant
-    const newUser = await userService.createUser(req.body);
+    if (!req.user || !req.user.tenantId) return res.status(401).json({ message: 'Unauthorized' });
+    const userData = Object.assign({}, req.body, { tenantId: req.user.tenantId });
+    const newUser = await userService.createUser(userData);
     res.status(201).json(newUser);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -55,8 +56,8 @@ exports.createUser = async (req, res) => {
  */
 exports.updateUser = async (req, res) => {
   try {
-    // Ensure user belongs to the authenticated tenant before updating
-    const updatedUser = await userService.updateUser(req.params.id, req.body);
+    if (!req.user || !req.user.tenantId) return res.status(401).json({ message: 'Unauthorized' });
+    const updatedUser = await userService.updateUser(req.params.id, req.body, req.user.tenantId);
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -73,8 +74,8 @@ exports.updateUser = async (req, res) => {
  */
 exports.deleteUser = async (req, res) => {
   try {
-    // Ensure user belongs to the authenticated tenant before deleting
-    const deletedUser = await userService.deleteUser(req.params.id);
+    if (!req.user || !req.user.tenantId) return res.status(401).json({ message: 'Unauthorized' });
+    const deletedUser = await userService.deleteUser(req.params.id, req.user.tenantId);
     if (!deletedUser) {
       return res.status(404).json({ message: 'User not found' });
     }

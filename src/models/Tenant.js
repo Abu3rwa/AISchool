@@ -27,6 +27,5 @@ const TenantSchema = new mongoose.Schema(
 );
 
 // Index for slug lookups
-TenantSchema.index({ slug: 1 });
 
 module.exports = mongoose.model('Tenant', TenantSchema);
