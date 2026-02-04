@@ -93,9 +93,16 @@ exports.createDefaultRoles = async (tenantId) => {
         'classes.create', 'classes.read', 'classes.update', 'classes.delete',
         'subjects.create', 'subjects.read', 'subjects.update', 'subjects.delete',
         'grades.create', 'grades.read', 'grades.update', 'grades.delete',
+        'enrollments.create', 'enrollments.read', 'enrollments.update', 'enrollments.delete',
         'attendance.create', 'attendance.read', 'attendance.update', 'attendance.delete',
+        'schedules.create', 'schedules.read', 'schedules.update', 'schedules.delete',
         'fees.create', 'fees.read', 'fees.update', 'fees.delete',
         'payments.create', 'payments.read', 'payments.update', 'payments.delete',
+        'behavior-records.create', 'behavior-records.read', 'behavior-records.update', 'behavior-records.delete',
+        'notifications.create', 'notifications.read', 'notifications.update', 'notifications.delete',
+        'assets.create', 'assets.read', 'assets.update', 'assets.delete',
+        'ai-report-requests.create', 'ai-report-requests.read', 'ai-report-requests.update', 'ai-report-requests.delete',
+        'term-reports.create', 'term-reports.read', 'term-reports.update', 'term-reports.delete',
         'reports.read', 'reports.create',
         'settings.read', 'settings.update',
         'audit.read'
@@ -111,6 +118,13 @@ exports.createDefaultRoles = async (tenantId) => {
         'subjects.read', 'subjects.update',
         'grades.create', 'grades.read', 'grades.update',
         'attendance.create', 'attendance.read', 'attendance.update',
+        'schedules.read',
+        'enrollments.read',
+        'behavior-records.read',
+        'notifications.read',
+        'assets.read',
+        'ai-report-requests.create', 'ai-report-requests.read',
+        'term-reports.create', 'term-reports.read',
         'reports.read', 'reports.create'
       ],
       isDefault: true
@@ -124,6 +138,9 @@ exports.createDefaultRoles = async (tenantId) => {
         'attendance.read',
         'fees.read',
         'payments.read',
+        'notifications.read',
+        'term-reports.read',
+        'ai-report-requests.read',
         'reports.read'
       ],
       isDefault: true

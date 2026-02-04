@@ -6,8 +6,9 @@ const providerSchema = new Schema({
   legalName: String,
   email: String,
   domain: String,
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  deleted: { type: Boolean, default: false },
+  deletedAt: { type: Date },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Provider', providerSchema);
-          

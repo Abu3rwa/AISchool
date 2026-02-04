@@ -2,26 +2,30 @@
 const Provider = require('../models/Provider');
 
 exports.createProvider = async (providerData) => {
-  // ...implementation
-  throw new Error('Not implemented');
+  const newProvider = new Provider(providerData);
+  return await newProvider.save();
 };
 
 exports.getAllProviders = async () => {
-  // ...implementation
-  throw new Error('Not implemented');
+  return await Provider.find({ deleted: false }).sort({ createdAt: -1 });
 };
 
 exports.getProviderById = async (id) => {
-  // ...implementation
-  throw new Error('Not implemented');
+  return await Provider.findOne({ _id: id, deleted: false });
 };
 
 exports.updateProvider = async (id, updateData) => {
-  // ...implementation
-  throw new Error('Not implemented');
+  return await Provider.findOneAndUpdate(
+    { _id: id, deleted: false },
+    updateData,
+    { new: true, runValidators: true }
+  );
 };
 
 exports.deleteProvider = async (id) => {
-  // ...implementation
-  throw new Error('Not implemented');
+  return await Provider.findOneAndUpdate(
+    { _id: id, deleted: false },
+    { deleted: true, deletedAt: new Date() },
+    { new: true }
+  );
 };

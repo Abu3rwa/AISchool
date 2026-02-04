@@ -11,6 +11,8 @@ const AuditLogSchema = new Schema(
     before: { type: Object },
     after: { type: Object },
     ipAddress: { type: String },
+    deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
   },
   { timestamps: true }
 );

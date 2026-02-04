@@ -3,14 +3,15 @@ const express = require('express');
 const router = express.Router();
 const enrollmentController = require('../controllers/enrollmentController');
 const authMiddleware = require('../middleware/authMiddleware');
+const { requirePermission } = require('../middleware/rbacMiddleware');
 
 // All routes require authentication
 router.use(authMiddleware);
 
-router.post('/', enrollmentController.createEnrollment);
-router.get('/', enrollmentController.getAllEnrollments);
-router.get('/:id', enrollmentController.getEnrollmentById);
-router.put('/:id', enrollmentController.updateEnrollment);
-router.delete('/:id', enrollmentController.deleteEnrollment);
+router.post('/', requirePermission('enrollments.create'), enrollmentController.createEnrollment);
+router.get('/', requirePermission('enrollments.read'), enrollmentController.getAllEnrollments);
+router.get('/:id', requirePermission('enrollments.read'), enrollmentController.getEnrollmentById);
+router.put('/:id', requirePermission('enrollments.update'), enrollmentController.updateEnrollment);
+router.delete('/:id', requirePermission('enrollments.delete'), enrollmentController.deleteEnrollment);
 
 module.exports = router;

@@ -2,6 +2,12 @@
 const express = require('express');
 const router = express.Router();
 const providerController = require('../controllers/providerController');
+const authMiddleware = require('../middleware/authMiddleware');
+const { requirePermission } = require('../middleware/rbacMiddleware');
+
+// All routes require authentication
+router.use(authMiddleware);
+router.use(requirePermission('users.update'));
 
 // POST /api/providers - create provider
 router.post('/', providerController.createProvider);
