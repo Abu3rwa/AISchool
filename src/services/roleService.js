@@ -120,11 +120,11 @@ exports.createDefaultRoles = async (tenantId) => {
         'attendance.create', 'attendance.read', 'attendance.update',
         'schedules.read',
         'enrollments.read',
-        'behavior-records.read',
+        'behavior-records.create', 'behavior-records.read', 'behavior-records.update',
         'notifications.read',
-        'assets.read',
-        'ai-report-requests.create', 'ai-report-requests.read',
-        'term-reports.create', 'term-reports.read',
+        'assets.create', 'assets.read',
+        'ai-report-requests.create', 'ai-report-requests.read', 'ai-report-requests.update',
+        'term-reports.create', 'term-reports.read', 'term-reports.update',
         'reports.read', 'reports.create'
       ],
       isDefault: true
@@ -132,6 +132,22 @@ exports.createDefaultRoles = async (tenantId) => {
     {
       tenantId,
       name: 'STUDENT',
+      permissions: [
+        'students.read',
+        'grades.read',
+        'attendance.read',
+        'fees.read',
+        'payments.read',
+        'notifications.read',
+        'term-reports.read',
+        'ai-report-requests.read',
+        'reports.read'
+      ],
+      isDefault: true
+    },
+    {
+      tenantId,
+      name: 'PARENT',
       permissions: [
         'students.read',
         'grades.read',
