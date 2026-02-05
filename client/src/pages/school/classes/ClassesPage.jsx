@@ -12,6 +12,11 @@ import {
     selectPortalClassesLoading,
     selectPortalClassesError,
 } from '../../../store/slices/portalClassesSlice';
+import {
+    fetchGradesByClass,
+    selectPortalGrades,
+    selectPortalGradesLoading,
+} from '../../../store/slices/portalGradesSlice';
 import { selectSchoolUser } from '../../../store/slices/schoolAuthSlice';
 
 const ClassesPage = () => {
@@ -26,7 +31,12 @@ const ClassesPage = () => {
     const [showCreate, setShowCreate] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
+    const [showGrades, setShowGrades] = useState(false);
     const [selectedClass, setSelectedClass] = useState(null);
+    
+    // Grades state
+    const classGrades = useSelector(selectPortalGrades);
+    const gradesLoading = useSelector(selectPortalGradesLoading);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -84,6 +94,16 @@ const ClassesPage = () => {
     const openDelete = (cls) => {
         setSelectedClass(cls);
         setShowDelete(true);
+    };
+
+    const openGrades = (cls) => {
+        if (!cls?._id) {
+            console.error('Class ID is missing');
+            return;
+        }
+        setSelectedClass(cls);
+        dispatch(fetchGradesByClass({ classId: cls._id }));
+        setShowGrades(true);
     };
 
     const handleCreate = (e) => {
@@ -151,13 +171,13 @@ const ClassesPage = () => {
                                     <th>Room</th>
                                     <th>Students</th>
                                     <th>Status</th>
-                                    {isAdmin && <th>Actions</th>}
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredClasses.length === 0 ? (
                                     <tr>
-                                        <td colSpan={isAdmin ? 8 : 7} className="text-muted text-center">
+                                        <td colSpan={8} className="text-muted text-center">
                                             No classes found
                                         </td>
                                     </tr>
@@ -185,25 +205,30 @@ const ClassesPage = () => {
                                                     {c.isActive ? 'Active' : 'Inactive'}
                                                 </Badge>
                                             </td>
-                                            {isAdmin && (
-                                                <td>
-                                                    <div className="d-flex gap-1">
-                                                        <Button size="sm" variant="outline-primary" onClick={() => openEdit(c)}>
-                                                            Edit
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant={c.isActive ? 'outline-secondary' : 'outline-success'}
-                                                            onClick={() => handleStatusToggle(c)}
-                                                        >
-                                                            {c.isActive ? 'Deactivate' : 'Activate'}
-                                                        </Button>
-                                                        <Button size="sm" variant="outline-danger" onClick={() => openDelete(c)}>
-                                                            Delete
-                                                        </Button>
-                                                    </div>
-                                                </td>
-                                            )}
+                                            <td>
+                                                <div className="d-flex gap-1">
+                                                    <Button size="sm" variant="outline-info" onClick={() => openGrades(c)}>
+                                                        Grades
+                                                    </Button>
+                                                    {isAdmin && (
+                                                        <>
+                                                            <Button size="sm" variant="outline-primary" onClick={() => openEdit(c)}>
+                                                                Edit
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant={c.isActive ? 'outline-secondary' : 'outline-success'}
+                                                                onClick={() => handleStatusToggle(c)}
+                                                            >
+                                                                {c.isActive ? 'Deactivate' : 'Activate'}
+                                                            </Button>
+                                                            <Button size="sm" variant="outline-danger" onClick={() => openDelete(c)}>
+                                                                Delete
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
                                         </tr>
                                     ))
                                 )}
@@ -342,6 +367,109 @@ const ClassesPage = () => {
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowDelete(false)}>Cancel</Button>
                     <Button variant="danger" onClick={handleDelete}>Delete</Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Grades Modal */}
+            <Modal show={showGrades} onHide={() => setShowGrades(false)} centered size="xl">
+                <Modal.Header closeButton>
+                    <Modal.Title>
+                        Grades - {selectedClass?.name}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                    {gradesLoading ? (
+                        <div className="text-center py-4">
+                            <Spinner animation="border" />
+                        </div>
+                    ) : classGrades.length === 0 ? (
+                        <div className="text-center text-muted py-4">
+                            No grades recorded for this class
+                        </div>
+                    ) : (
+                        <Table responsive hover size="sm">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Subject</th>
+                                    <th>Type</th>
+                                    <th>Title</th>
+                                    <th>Score</th>
+                                    <th>%</th>
+                                    <th>Grade</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {classGrades.map(g => (
+                                    <tr key={g._id}>
+                                        <td className="fw-medium">
+                                            {g.studentId?.firstName} {g.studentId?.lastName}
+                                        </td>
+                                        <td>{g.subjectId?.name || '-'}</td>
+                                        <td>
+                                            <Badge bg="secondary" className="fw-normal">
+                                                {g.gradeTypeId?.name || '-'}
+                                            </Badge>
+                                        </td>
+                                        <td>{g.title || '-'}</td>
+                                        <td>{g.score}/{g.maxScore}</td>
+                                        <td>{g.percentage?.toFixed(1)}%</td>
+                                        <td>
+                                            <Badge bg={
+                                                g.percentage >= 90 ? 'success' :
+                                                g.percentage >= 80 ? 'primary' :
+                                                g.percentage >= 70 ? 'info' :
+                                                g.percentage >= 60 ? 'warning' : 'danger'
+                                            }>
+                                                {g.letterGrade || '-'}
+                                            </Badge>
+                                        </td>
+                                        <td className="text-muted">
+                                            {g.assessmentDate ? new Date(g.assessmentDate).toLocaleDateString() : '-'}
+                                        </td>
+                                        <td>
+                                            <Badge bg={g.isPublished ? 'success' : 'secondary'}>
+                                                {g.isPublished ? 'Published' : 'Draft'}
+                                            </Badge>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    )}
+                    {classGrades.length > 0 && (
+                        <div className="mt-3 p-3 bg-light rounded">
+                            <div className="row text-center">
+                                <div className="col">
+                                    <div className="text-muted small">Total Grades</div>
+                                    <div className="fw-bold">{classGrades.length}</div>
+                                </div>
+                                <div className="col">
+                                    <div className="text-muted small">Class Average</div>
+                                    <div className="fw-bold">
+                                        {(classGrades.reduce((sum, g) => sum + (g.percentage || 0), 0) / classGrades.length).toFixed(1)}%
+                                    </div>
+                                </div>
+                                <div className="col">
+                                    <div className="text-muted small">Students</div>
+                                    <div className="fw-bold">
+                                        {new Set(classGrades.map(g => g.studentId?._id)).size}
+                                    </div>
+                                </div>
+                                <div className="col">
+                                    <div className="text-muted small">Published</div>
+                                    <div className="fw-bold">
+                                        {classGrades.filter(g => g.isPublished).length}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowGrades(false)}>Close</Button>
                 </Modal.Footer>
             </Modal>
         </Container>

@@ -134,8 +134,12 @@ const StudentsPage = () => {
     };
 
     const openGrades = (student) => {
+        if (!student?._id) {
+            console.error('Student ID is missing');
+            return;
+        }
         setSelectedStudent(student);
-        dispatch(fetchGradesByStudent(student._id));
+        dispatch(fetchGradesByStudent({ studentId: student._id }));
         setShowGrades(true);
     };
 
@@ -219,13 +223,13 @@ const StudentsPage = () => {
                                     <th>Class</th>
                                     <th>Guardian Email</th>
                                     <th>Status</th>
-                                    {isAdmin && <th>Actions</th>}
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredStudents.length === 0 ? (
                                     <tr>
-                                        <td colSpan={isAdmin ? 6 : 5} className="text-muted text-center">
+                                        <td colSpan={6} className="text-muted text-center">
                                             No students found
                                         </td>
                                     </tr>
@@ -575,6 +579,99 @@ const StudentsPage = () => {
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowDelete(false)}>Cancel</Button>
                     <Button variant="danger" onClick={handleDelete}>Delete</Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Grades Modal */}
+            <Modal show={showGrades} onHide={() => setShowGrades(false)} centered size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>
+                        Grades - {selectedStudent?.firstName} {selectedStudent?.lastName}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                    {gradesLoading ? (
+                        <div className="text-center py-4">
+                            <Spinner animation="border" />
+                        </div>
+                    ) : studentGrades.length === 0 ? (
+                        <div className="text-center text-muted py-4">
+                            No grades recorded for this student
+                        </div>
+                    ) : (
+                        <Table responsive hover size="sm">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Type</th>
+                                    <th>Title</th>
+                                    <th>Score</th>
+                                    <th>%</th>
+                                    <th>Grade</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {studentGrades.map(g => (
+                                    <tr key={g._id}>
+                                        <td>{g.subjectId?.name || '-'}</td>
+                                        <td>
+                                            <Badge bg="secondary" className="fw-normal">
+                                                {g.gradeTypeId?.name || '-'}
+                                            </Badge>
+                                        </td>
+                                        <td>{g.title || '-'}</td>
+                                        <td className="fw-medium">{g.score}/{g.maxScore}</td>
+                                        <td>{g.percentage?.toFixed(1)}%</td>
+                                        <td>
+                                            <Badge bg={
+                                                g.percentage >= 90 ? 'success' :
+                                                g.percentage >= 80 ? 'primary' :
+                                                g.percentage >= 70 ? 'info' :
+                                                g.percentage >= 60 ? 'warning' : 'danger'
+                                            }>
+                                                {g.letterGrade || '-'}
+                                            </Badge>
+                                        </td>
+                                        <td className="text-muted">
+                                            {g.assessmentDate ? new Date(g.assessmentDate).toLocaleDateString() : '-'}
+                                        </td>
+                                        <td>
+                                            <Badge bg={g.isPublished ? 'success' : 'secondary'}>
+                                                {g.isPublished ? 'Published' : 'Draft'}
+                                            </Badge>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    )}
+                    {studentGrades.length > 0 && (
+                        <div className="mt-3 p-3 bg-light rounded">
+                            <div className="row text-center">
+                                <div className="col">
+                                    <div className="text-muted small">Total Grades</div>
+                                    <div className="fw-bold">{studentGrades.length}</div>
+                                </div>
+                                <div className="col">
+                                    <div className="text-muted small">Average</div>
+                                    <div className="fw-bold">
+                                        {(studentGrades.reduce((sum, g) => sum + (g.percentage || 0), 0) / studentGrades.length).toFixed(1)}%
+                                    </div>
+                                </div>
+                                <div className="col">
+                                    <div className="text-muted small">Published</div>
+                                    <div className="fw-bold">
+                                        {studentGrades.filter(g => g.isPublished).length}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowGrades(false)}>Close</Button>
                 </Modal.Footer>
             </Modal>
         </Container>
