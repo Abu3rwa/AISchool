@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 
 const TenantSchema = new mongoose.Schema(
   {
+    providerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Provider', index: true },
+    primaryAdminUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     subscriptionPlan: {

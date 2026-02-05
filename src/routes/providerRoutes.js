@@ -7,17 +7,16 @@ const { requirePermission } = require('../middleware/rbacMiddleware');
 
 // All routes require authentication
 router.use(authMiddleware);
-router.use(requirePermission('users.update'));
 
 // POST /api/providers - create provider
-router.post('/', providerController.createProvider);
+router.post('/', requirePermission('providers.create'), providerController.createProvider);
 // GET /api/providers - list providers
-router.get('/', providerController.getAllProviders);
+router.get('/', requirePermission('providers.read'), providerController.getAllProviders);
 // GET /api/providers/:id - get provider by id
-router.get('/:id', providerController.getProviderById);
+router.get('/:id', requirePermission('providers.read'), providerController.getProviderById);
 // PUT /api/providers/:id - update provider
-router.put('/:id', providerController.updateProvider);
+router.put('/:id', requirePermission('providers.update'), providerController.updateProvider);
 // DELETE /api/providers/:id - delete provider
-router.delete('/:id', providerController.deleteProvider);
+router.delete('/:id', requirePermission('providers.delete'), providerController.deleteProvider);
 
 module.exports = router;

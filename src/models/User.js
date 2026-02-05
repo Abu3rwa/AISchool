@@ -18,6 +18,8 @@ const UserSchema = new Schema(
   { timestamps: true }
 );
 
-UserSchema.index({ tenantId: 1, email: 1 }, { unique: true });
+// Global uniqueness for email (One email = One User in the entire system)
+UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ tenantId: 1 });
 
 module.exports = mongoose.model('User', UserSchema);

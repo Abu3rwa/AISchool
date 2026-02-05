@@ -89,6 +89,8 @@ exports.createDefaultRoles = async (tenantId) => {
       name: 'ADMIN',
       permissions: [
         'users.create', 'users.read', 'users.update', 'users.delete',
+        'roles.create', 'roles.read', 'roles.update', 'roles.delete',
+        'providers.create', 'providers.read', 'providers.update', 'providers.delete',
         'students.create', 'students.read', 'students.update', 'students.delete',
         'classes.create', 'classes.read', 'classes.update', 'classes.delete',
         'subjects.create', 'subjects.read', 'subjects.update', 'subjects.delete',

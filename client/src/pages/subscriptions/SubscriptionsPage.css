@@ -1,0 +1,78 @@
+.subscriptions-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-5);
+}
+
+.subscriptions-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-5);
+}
+
+.subscription-stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.subscription-stat__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.subscription-stat__icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-600) 100%);
+    color: white;
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+}
+
+.subscription-stat__tenants {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.subscription-stat__revenue {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-1);
+}
+
+.subscription-stat__amount {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+}
+
+.subscription-stat__period {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+.subscription-stat__change {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-success-500);
+    background-color: var(--color-success-50);
+    padding: 2px var(--spacing-2);
+    border-radius: var(--radius-full);
+}
+
+@media (max-width: 1200px) {
+    .subscriptions-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .subscriptions-stats {
+        grid-template-columns: 1fr;
+    }
+}

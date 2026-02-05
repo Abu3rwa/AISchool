@@ -1,0 +1,166 @@
+.tenants-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-5);
+}
+
+/* Filters bar */
+.tenants-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    flex-wrap: wrap;
+}
+
+.tenants-search {
+    flex: 1;
+    min-width: 250px;
+    max-width: 400px;
+}
+
+.tenants-filter-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.tenants-filter-select {
+    padding: var(--spacing-2) var(--spacing-10) var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    background-color: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--spacing-2) center;
+    background-size: 16px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.tenants-filter-select:hover {
+    border-color: var(--color-border-hover);
+}
+
+.tenants-filter-select:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+}
+
+/* Table enhancements */
+.tenant-name-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+}
+
+.tenant-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--color-primary-100) 0%, var(--color-primary-200) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    color: var(--color-primary-700);
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .tenant-avatar {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.3) 100%);
+    color: var(--color-primary-400);
+}
+
+.tenant-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.tenant-name {
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+}
+
+.tenant-slug {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+
+/* Action buttons */
+.tenant-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+}
+
+.tenant-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    transition: all var(--transition-fast);
+}
+
+.tenant-action-btn:hover {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
+
+.tenant-action-btn--danger:hover {
+    background-color: var(--color-error-50);
+    color: var(--color-error-500);
+}
+
+/* Status badges */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: var(--spacing-2);
+}
+
+.status-dot--active {
+    background-color: var(--color-success-500);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.status-dot--inactive {
+    background-color: var(--color-text-muted);
+}
+
+.status-dot--suspended {
+    background-color: var(--color-error-500);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Empty state enhancement */
+.tenants-empty {
+    text-align: center;
+    padding: var(--spacing-12) var(--spacing-4);
+}
+
+.tenants-empty__icon {
+    margin-bottom: var(--spacing-4);
+    color: var(--color-text-muted);
+    opacity: 0.5;
+}
+
+.tenants-empty__title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.tenants-empty__message {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-4);
+}

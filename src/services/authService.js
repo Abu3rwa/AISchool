@@ -5,18 +5,15 @@ const Tenant = require('../models/Tenant');
 const roleService = require('./roleService');
 
 /**
- * @desc Register a new user and potentially a new tenant
- * @param {string} email
- * @param {string} password
- * @param {string} firstName
- * @param {string} lastName
- * @param {string} [tenantName] - Optional: if provided, a new tenant is created
- * @returns {Object} - Created user object with token
+ * @desc Register a new user and potentially a new tenant (Provider Logic mostly)
+ * ... (existing register code) ...
  */
 exports.register = async (email, password, firstName, lastName, tenantName) => {
+  email = email.toLowerCase().trim();
   let tenantId;
 
-  // Check if user with email already exists
+  // Check if user with email already exists (Global check for registration convenience, 
+  // though schema allows duplicates across tenants. For SaaS registration, usually expect unique email for the account owner)
   const existingUser = await User.findOne({ email, deleted: false });
   if (existingUser) {
     throw new Error('User with this email already exists');
@@ -31,9 +28,9 @@ exports.register = async (email, password, firstName, lastName, tenantName) => {
       throw new Error('Tenant with this name already exists');
     }
 
-    const newTenant = new Tenant({ 
-      name: tenantName, 
-      slug: slug 
+    const newTenant = new Tenant({
+      name: tenantName,
+      slug: slug
     });
     await newTenant.save();
     tenantId = newTenant._id;
@@ -60,7 +57,7 @@ exports.register = async (email, password, firstName, lastName, tenantName) => {
     lastName,
     email,
     password: hashedPassword,
-    roles: [adminRole._id] // Assign ADMIN role as ObjectId reference
+    roles: [adminRole._id]
   });
 
   await newUser.save();
@@ -83,49 +80,71 @@ exports.register = async (email, password, firstName, lastName, tenantName) => {
  * @desc Login a user
  * @param {string} email
  * @param {string} password
+ * @param {string} [slug] - Tenant slug (School Code) to identify which school context
  * @returns {Object} - User object and JWT token
  */
-exports.login = async (email, password) => {
-  const user = await User.findOne({ email, deleted: false }).select('+password');
-  if (!user) {
-    throw new Error('Invalid credentials');
+exports.login = async (email, password, slug) => {
+  email = email.toLowerCase();
+  let tenantId;
+
+  if (slug) {
+    // 1. Find the tenant by slug first
+    const tenant = await Tenant.findOne({ slug, deleted: false });
+    if (!tenant) {
+      throw new Error('School not found with this code');
+    }
+    if (tenant.status !== 'active') {
+      throw new Error(`School account is ${tenant.status}`);
+    }
+    tenantId = tenant._id;
   }
 
+  // 2. Build query
+  const query = { email, deleted: false };
+  if (tenantId) {
+    query.tenantId = tenantId;
+  }
+
+  // 3. Find user
+  const user = await User.findOne(query).select('+password').populate('roles', 'name permissions');
+
+  if (!user) {
+    throw new Error('Invalid credentials'); // Generic message for security
+  }
+
+  // If no slug was provided, we must check if this user implies a specific tenant status check
+  // (This handles the Provider login case where they might not supply a slug, 
+  // OR if we assume email uniqueness for Providers)
+  if (!tenantId) {
+    const tenant = await Tenant.findOne({ _id: user.tenantId, deleted: false });
+    if (!tenant || tenant.status !== 'active') {
+      throw new Error('Tenant access denied');
+    }
+  }
+
+  // 4. Verify password
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
     throw new Error('Invalid credentials');
   }
 
-  // Check if tenant is active
-  const tenant = await Tenant.findOne({ _id: user.tenantId, deleted: false });
-  if (!tenant) {
-    throw new Error('Tenant not found');
-  }
-  if (tenant.status !== 'active') {
-    throw new Error(`Tenant account is ${tenant.status}`);
-  }
-
-  // Generate JWT token
+  // 5. Generate Token
   const token = jwt.sign(
     { id: user._id, tenantId: user.tenantId },
     process.env.JWT_SECRET,
     { expiresIn: '24h' }
   );
 
-  // Remove password before returning user object
-  user.password = undefined;
+  const userObj = user.toObject();
+  delete userObj.password;
 
-  return { user, token };
+  return { user: userObj, token };
 };
 
-/**
- * @desc Placeholder for getting user details, assuming JWT is validated by middleware
- * @param {string} userId
- * @param {string} tenantId
- * @returns {Object} - User object
- */
 exports.getUserProfile = async (userId, tenantId) => {
-  const user = await User.findOne({ _id: userId, tenantId, deleted: false }).select('-password');
+  const user = await User.findOne({ _id: userId, tenantId, deleted: false })
+    .select('-password')
+    .populate('roles', 'name permissions');
   if (!user) {
     throw new Error('User not found');
   }

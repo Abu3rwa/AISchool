@@ -1,4 +1,5 @@
-const User = require('../models/User'); // Ensure this matches your model file name
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 
 /**
  * @desc Get all users
@@ -6,8 +7,11 @@ const User = require('../models/User'); // Ensure this matches your model file n
  * @returns {Array} - Array of user objects
  */
 exports.getAllUsers = async (tenantId) => {
-  // Filters users by tenantId to prevent cross-tenant data leakage
-  return await User.find({ tenantId, deleted: false }).select('-password');
+  // Filters users by tenantId 
+  return await User.find({ tenantId, deleted: false })
+    .select('-password')
+    .populate('roles', 'name')
+    .sort({ createdAt: -1 });
 };
 
 /**
@@ -17,8 +21,9 @@ exports.getAllUsers = async (tenantId) => {
  * @returns {Object} - User object
  */
 exports.getUserById = async (id, tenantId) => {
-  // Filters user by tenantId to prevent cross-tenant data leakage
-  return await User.findOne({ _id: id, tenantId, deleted: false }).select('-password');
+  return await User.findOne({ _id: id, tenantId, deleted: false })
+    .select('-password')
+    .populate('roles', 'name permissions');
 };
 
 /**
@@ -27,8 +32,24 @@ exports.getUserById = async (id, tenantId) => {
  * @returns {Object} - Newly created user object
  */
 exports.createUser = async (userData) => {
+  // Check email uniqueness globally
+  const existing = await User.findOne({ email: userData.email, deleted: false });
+  if (existing) {
+    throw new Error('User with this email already exists');
+  }
+
+  // Hash password if provided
+  if (userData.password) {
+    const salt = await bcrypt.genSalt(10);
+    userData.password = await bcrypt.hash(userData.password, salt);
+  }
+
   const newUser = new User(userData);
-  return await newUser.save();
+  await newUser.save();
+
+  const userObj = newUser.toObject();
+  delete userObj.password;
+  return userObj;
 };
 
 /**
@@ -39,8 +60,18 @@ exports.createUser = async (userData) => {
  * @returns {Object} - Updated user object
  */
 exports.updateUser = async (id, updateData, tenantId) => {
+  // If password is being updated, hash it
+  if (updateData.password) {
+    const salt = await bcrypt.genSalt(10);
+    updateData.password = await bcrypt.hash(updateData.password, salt);
+  }
+
   // Filters user by tenantId to prevent cross-tenant data leakage
-  return await User.findOneAndUpdate({ _id: id, tenantId, deleted: false }, updateData, { new: true }).select('-password');
+  return await User.findOneAndUpdate(
+    { _id: id, tenantId, deleted: false },
+    updateData,
+    { new: true, runValidators: true }
+  ).select('-password');
 };
 
 /**
@@ -50,6 +81,9 @@ exports.updateUser = async (id, updateData, tenantId) => {
  * @returns {Object} - Soft deleted user object
  */
 exports.deleteUser = async (id, tenantId) => {
-  // Filters user by tenantId to prevent cross-tenant data leakage
-  return await User.findOneAndUpdate({ _id: id, tenantId, deleted: false }, { deleted: true, deletedAt: new Date() }, { new: true }).select('-password');
+  return await User.findOneAndUpdate(
+    { _id: id, tenantId, deleted: false },
+    { deleted: true, deletedAt: new Date() },
+    { new: true }
+  ).select('-password');
 };

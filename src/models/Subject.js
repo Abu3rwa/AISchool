@@ -5,8 +5,9 @@ const SubjectSchema = new Schema(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     name: { type: String, required: true, trim: true },
-    code: { type: String, required: true, trim: true },
+    code: { type: String, trim: true },
     teacher: { type: Schema.Types.ObjectId, ref: 'User' },
+    isActive: { type: Boolean, default: true },
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
   },

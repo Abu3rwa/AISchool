@@ -7,12 +7,10 @@ const { requirePermission } = require('../middleware/rbacMiddleware');
 
 // All routes require authentication and admin permission
 router.use(authMiddleware);
-router.use(requirePermission('users.update')); // Admin permission for role management
-
-router.post('/', roleController.createRole);
-router.get('/', roleController.getAllRoles);
-router.get('/:id', roleController.getRoleById);
-router.put('/:id', roleController.updateRole);
-router.delete('/:id', roleController.deleteRole);
+router.post('/', requirePermission('roles.create'), roleController.createRole);
+router.get('/', requirePermission('roles.read'), roleController.getAllRoles);
+router.get('/:id', requirePermission('roles.read'), roleController.getRoleById);
+router.put('/:id', requirePermission('roles.update'), roleController.updateRole);
+router.delete('/:id', requirePermission('roles.delete'), roleController.deleteRole);
 
 module.exports = router;

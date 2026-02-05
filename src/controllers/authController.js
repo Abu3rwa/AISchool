@@ -23,8 +23,8 @@ exports.registerUser = async (req, res) => {
  */
 exports.loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const { token, user } = await authService.login(email, password);
+    const { email, password, slug } = req.body;
+    const { token, user } = await authService.login(email, password, slug);
     res.status(200).json({ token, user });
   } catch (error) {
     res.status(401).json({ message: error.message });
@@ -41,13 +41,13 @@ exports.getMe = async (req, res) => {
     if (!req.user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     // Populate roles for full user info
     const User = require('../models/User');
     const user = await User.findById(req.user._id)
       .populate('roles', 'name permissions')
       .select('-password');
-    
+
     res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });

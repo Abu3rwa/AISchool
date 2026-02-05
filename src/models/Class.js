@@ -5,8 +5,11 @@ const ClassSchema = new Schema(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     name: { type: String, required: true, trim: true },
-    teacher: { type: Schema.Types.ObjectId, ref: 'User' },
-    room: { type: String },
+    gradeLevel: { type: String, trim: true },
+    section: { type: String, trim: true },
+    academicYear: { type: String, trim: true },
+    room: { type: String, trim: true },
+    isActive: { type: Boolean, default: true },
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
   },

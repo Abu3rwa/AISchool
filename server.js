@@ -21,6 +21,25 @@ const behaviorRecordRoutes = require('./src/routes/behaviorRecordRoutes');
 const termReportRoutes = require('./src/routes/termReportRoutes');
 const assetRoutes = require('./src/routes/assetRoutes');
 const aiReportRequestRoutes = require('./src/routes/aiReportRequestRoutes');
+const providerAuthRoutes = require('./src/routes/providerAuthRoutes');
+const providerTenantRoutes = require('./src/routes/providerTenantRoutes');
+const providerTenantUsersRoutes = require('./src/routes/providerTenantUsersRoutes');
+const providerTenantRolesRoutes = require('./src/routes/providerTenantRolesRoutes');
+const providerTenantMetricsRoutes = require('./src/routes/providerTenantMetricsRoutes');
+
+// Portal routes (school user facing)
+const portalStudentRoutes = require('./src/routes/portalStudentRoutes');
+const portalTeacherRoutes = require('./src/routes/portalTeacherRoutes');
+const portalClassRoutes = require('./src/routes/portalClassRoutes');
+const portalSubjectRoutes = require('./src/routes/portalSubjectRoutes');
+const portalClassSubjectRoutes = require('./src/routes/portalClassSubjectRoutes');
+const portalMyRoutes = require('./src/routes/portalMyRoutes');
+
+// Grade system routes
+const gradeTypeRoutes = require('./src/routes/gradeTypeRoutes');
+const termRoutes = require('./src/routes/termRoutes');
+const gradingScaleRoutes = require('./src/routes/gradingScaleRoutes');
+const portalGradeRoutes = require('./src/routes/portalGradeRoutes');
 
 // Load env vars
 dotenv.config();
@@ -29,6 +48,31 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+// CORS (for local dev)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowed = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+  ];
+
+  if (origin && allowed.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
+
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 // Body parser
 app.use(express.json());
@@ -42,6 +86,11 @@ app.use('/api/tenants', tenantRoutes);
 
 // Scaffolded resource routes
 app.use('/api/providers', providerRoutes);
+app.use('/api/provider-auth', providerAuthRoutes);
+app.use('/api/provider/tenants', providerTenantRoutes);
+app.use('/api/provider/tenants', providerTenantUsersRoutes);
+app.use('/api/provider/tenants', providerTenantRolesRoutes);
+app.use('/api/provider/tenants', providerTenantMetricsRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/classes', classRoutes);
@@ -58,6 +107,20 @@ app.use('/api/behavior-records', behaviorRecordRoutes);
 app.use('/api/term-reports', termReportRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/ai-report-requests', aiReportRequestRoutes);
+
+// Portal routes (school portal)
+app.use('/api/portal/students', portalStudentRoutes);
+app.use('/api/portal/teachers', portalTeacherRoutes);
+app.use('/api/portal/classes', portalClassRoutes);
+app.use('/api/portal/subjects', portalSubjectRoutes);
+app.use('/api/portal/class-subjects', portalClassSubjectRoutes);
+app.use('/api/portal/my', portalMyRoutes);
+
+// Grade system routes
+app.use('/api/portal/grade-types', gradeTypeRoutes);
+app.use('/api/portal/terms', termRoutes);
+app.use('/api/portal/grading-scale', gradingScaleRoutes);
+app.use('/api/portal/grades', portalGradeRoutes);
 
 // Error handler middleware (must be last)
 const errorHandler = require('./src/middleware/errorHandler');
